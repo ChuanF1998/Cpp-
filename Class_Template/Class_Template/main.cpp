@@ -133,7 +133,7 @@ int main()
 }
 #endif
 
-
+#if 0
 
 #include <iostream>
 using namespace std;
@@ -148,6 +148,8 @@ private:
 	T1 _d1;
 	T2 _d2;
 };
+
+//全特化
 template<>
 class Data<int, char>
 {
@@ -157,11 +159,53 @@ private:
 	int _d1;
 	char _d2;
 };
+
+// 将第二个参数特化为int
+template <class T1>
+class Data<T1, int>
+{
+public:
+	Data() { cout << "Data<T1, int>" << endl; }
+private:
+	T1 _d1;
+	int _d2;
+};
+
+//两个参数偏特化为指针类型
+template <typename T1, typename T2>
+class Data <T1*, T2*>
+{
+public:
+	Data() { cout << "Data<T1*, T2*>" << endl; }
+private:
+	T1 _d1;
+	T2 _d2;
+};
+
+//两个参数偏特化为引用类型
+template <typename T1, typename T2>
+class Data <T1&, T2&>
+{
+public:
+	Data(const T1& d1, const T2& d2)
+		: _d1(d1)
+		, _d2(d2)
+	{
+		cout << "Data<T1&, T2&>" << endl;
+	}
+private:
+	const T1 & _d1;
+	const T2 & _d2;
+};
+
 void TestVector()
 {
+	Data<int, int> d1; //基础模板
+	Data<int, char> d2;//全特化
+	Data<char, int> d3; //偏特化，调用特化的int型版本
+	Data<int&, int&> d4(1,3); //调用特化的引用版本
+	Data<int*, int*> d5;//调用特化的指针版本
 
-	Data<int, int> d1;
-	Data<int, char> d2;
 }
 
 int main()
@@ -169,3 +213,79 @@ int main()
 	TestVector();
 	return 0;
 }
+#endif
+
+#if 0
+
+#include <string>
+#include <iostream>
+
+
+template<class T>
+void Copy(T* dst, const T* src, size_t size)
+{
+	memcpy(dst, src, sizeof(T)*size);
+}
+
+template<class T>
+void copy(T* dst, const T* src, size_t size)
+{
+	for (size_t i = 0; i < size; ++i)
+	{
+		dst[i] = src[i];
+	}
+}
+
+class A
+{
+public:
+	A(int k, char* str)
+		:_k(k)
+		, _str(new char[strlen(str)+1])
+	{
+		for (int i = 0; i < strlen(str); ++i) {
+			_str[i] = str[i];
+		}
+		_str[strlen(str)] = '\0';
+	}
+
+	A(const A& a)
+	{
+		char* temp = new char[strlen(a._str) + 1];
+		for (int i = 0; i < strlen(a._str); ++i) {
+			temp[i] = a._str[i];
+		}
+		delete _str;
+		_str = temp;
+	}
+	const A& operator = (const A& a)
+	{
+		char* temp = new char[strlen(a._str) + 1];
+		for (int i = 0; i < strlen(a._str); ++i) {
+			temp[i] = a._str[i];
+		}
+		temp[strlen(a._str)] = '\0';
+		delete _str;
+		_str = temp;
+		return *this;
+	}
+private:
+	int _k;
+	char* _str;
+};
+int main()
+{
+	char* s = new char('j');
+	std::cout << s << std::endl;
+	delete s;
+	// 试试下面的代码
+	std::string strarr1[3] = { "11", "22", "33" };
+	std::string strarr2[3];
+	Copy(strarr2, strarr1, 3);
+	A a1(2, "ASD");
+	A a2(3,"a");
+	copy(&a2, &a1, 1);
+	return 0;
+}
+#endif
+
