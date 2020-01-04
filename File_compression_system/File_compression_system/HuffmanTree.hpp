@@ -4,62 +4,73 @@
 using namespace std;
 
 template<class T>
-struct Haffman_node
+struct Huffman_node
 {
 	T _value;
-	Haffman_node* _Lchild;
-	Haffman_node* _Rchild;
-	Haffman_node* _Parent;
-	Haffman_node()
-		:_Lchild(nullptr)
+	Huffman_node* _Lchild;  //左孩子
+	Huffman_node* _Rchild;  //右孩子
+	Huffman_node* _Parent;  //双亲
+	Huffman_node(const T& value = T())
+		: _value(value)
+		, _Lchild(nullptr)
 		, _Rchild(nullptr)
 		, _Parent(nullptr)
 	{}
 };
 
-
-struct character
+template<class T>
+class Less //优先级队列比较方式重写
 {
-	char _ch;
-	int _count;
-};
-
-struct cmp
-{
-	bool operator () (const Haffman_node<character>* a, const Haffman_node<character>* b)
+	typedef Huffman_node<T> node;
+public:
+	bool operator () (const node* a, const node* b)
 	{
-		return a->_value._count > b->_value._count;
+		return a->_value > b->_value;
 	}
 };
 
 
 template<class T>
-class Haffman_Tree
+class Huffman_Tree
 {
+	typedef Huffman_node<T> node;
 public:
-	Haffman_Tree()
-		:_root(nullptr)
+	Huffman_Tree()
+		: _root(nullptr)
 	{}
+	Huffman_Tree(const vector<T>& arr)
+	{
+		HuffmanBuilt(arr);
+	}
+	node* get()
+	{
+		return _root;
+	}
 
 	//哈夫曼树的构造
-	bool HaffmanBuilt(const vector<T>& array)
+	bool HuffmanBuilt(const vector<T>& array)
 	{
 		if (_root == nullptr) {
-			priority_queue<Haffman_node<character>*, vector<Haffman_node<character>*>, cmp> min_heap;
-			for (int i = 0; i < array.size(); ++i) {
-				Haffman_node<character>* p = new Haffman_node<character>;
+			priority_queue<node*, vector<node*>, Less<T>> min_heap;
+			for (size_t i = 0; i < array.size(); ++i) {
+				if (array[i]._count == 0) {
+					continue;
+				}
+				node* p = new node;
 				p->_value = array[i];
 				min_heap.push(p);
 			}
 			while (min_heap.size() > 1) {
-				Haffman_node<character>* left = min_heap.top();
+				node* left = min_heap.top();
 				min_heap.pop();
-				Haffman_node<character>* right = min_heap.top();
+				node* right = min_heap.top();
 				min_heap.pop();
-				Haffman_node<character>* parent = new Haffman_node<character>;
-				parent->_value._count = left->_value._count + right->_value._count;
+				node* parent = new node;
+				parent->_value = left->_value + right->_value;
 				parent->_Lchild = left;
 				parent->_Rchild = right;
+				left->_Parent = parent;
+				right->_Parent = parent;
 				min_heap.push(parent);
 			}
 			_root = min_heap.top();
@@ -67,6 +78,23 @@ public:
 		}
 		return false;
 	}
+
+	~Huffman_Tree()
+	{
+		destroy(_root);
+	}
+
 private:
-	Haffman_node<T>* _root;
+	Huffman_node<T>* _root;
+
+	//销毁
+	void destroy(node*& _root)
+	{
+		if (_root) {
+			destroy(_root->_Lchild);
+			destroy(_root->_Rchild);
+			delete _root;
+			_root = nullptr;
+		}
+	}
 };
