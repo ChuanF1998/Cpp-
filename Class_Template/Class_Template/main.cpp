@@ -289,3 +289,222 @@ int main()
 }
 #endif
 
+#if 0
+#include <string>
+template<class T>
+void Copy(T* dst, const T* src, size_t size)
+{
+	memcpy(dst, src, sizeof(T)*size);
+}
+int main()
+{
+	// 试试下面的代码
+	std::string strarr1[3] = { "11", "22", "33" };
+	std::string strarr2[3];
+	Copy(strarr2, strarr1, 3);
+	return 0;
+}
+
+#endif
+
+#if 0
+
+//类模板特化之类型萃取
+
+#include <string>
+using namespace std;
+
+// 代表内置类型
+struct TrueType
+{
+	static bool Get()
+	{
+		return true;
+	}
+};
+// 代表自定义类型
+struct FalseType
+{
+	static bool Get()
+	{
+		return false;
+	}
+};
+
+template<class T>
+struct TypeTraits
+{
+	typedef FalseType IsPODType;
+};
+
+template<>
+struct TypeTraits<char>
+{
+	typedef TrueType IsPODType;
+};
+template<>
+struct TypeTraits<short>
+{
+	typedef TrueType IsPODType;
+};
+template<>
+struct TypeTraits<int>
+{
+	typedef TrueType IsPODType;
+};
+template<>
+struct TypeTraits<long>
+{
+	typedef TrueType IsPODType;
+};
+template<>
+struct TypeTraits<long long>
+{
+	typedef TrueType IsPODType;
+};
+template<>
+struct TypeTraits<long double>
+{
+	typedef TrueType IsPODType;
+};
+template<>
+struct TypeTraits<float>
+{
+	typedef TrueType IsPODType;
+};
+template<>
+struct TypeTraits<double>
+{
+	typedef TrueType IsPODType;
+};
+
+template<class T>
+void Copy(T* dst, const T* src, size_t size)
+{
+	if (TypeTraits<T>::IsPODType::Get())
+		memcpy(dst, src, sizeof(T)*size);
+	else
+	{
+		for (size_t i = 0; i < size; ++i)
+			dst[i] = src[i];
+	}
+}
+int main()
+{
+	int a1[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
+	int a2[10];
+	Copy(a2, a1, 10);
+	string s1[] = { "1111", "2222", "3333", "4444" };
+	string s2[4];
+	Copy(s2, s1, 4);
+	return 0;
+}
+#endif
+
+#if 0
+#include <string>
+#include <iostream>
+using namespace std;
+
+//STL中的类型萃取例子
+
+// 代表自定义类型
+struct __true_type 
+{
+	__true_type(){}
+};
+struct __false_type {};
+
+template <class type>
+struct __type_traits
+{
+	typedef __false_type is_POD_type;
+};
+// 对所有内置类型进行特化
+template<>
+struct __type_traits<char>
+{
+	typedef __true_type is_POD_type;
+};
+template<>
+struct __type_traits<signed char>
+{
+	typedef __true_type is_POD_type;
+};
+template<>
+struct __type_traits<unsigned char>
+{
+	typedef __true_type is_POD_type;
+};
+template<>
+struct __type_traits<int>
+{
+	typedef __true_type is_POD_type;
+};
+template<>
+struct __type_traits<float>
+{
+	typedef __true_type is_POD_type;
+};
+template<>
+struct __type_traits<double>
+{
+	typedef __true_type is_POD_type;
+};
+// 注意：在重载内置类型时，所有的内置类型都必须重载出来，包括有符号和无符号，比如：对于int类型，必
+//须特化三个，int-- signed int -- unsigned int
+// 在需要区分内置类型与自定义类型的位置，标准库通常都是通过__true_type与__false_type给出一对重载的
+// 函数，然后用一个通用函数对其进行封装
+// 注意：第四个参数可以不提供名字，该参数最主要的作用就是让两个_copy函数形成重载
+template<class T>
+void _copy(T* dst, T* src, size_t n, __true_type)
+{
+	memcpy(dst, src, n*sizeof(T));
+}
+template<class T>
+void _copy(T* dst, T* src, size_t n, __false_type)
+{
+	for (size_t i = 0; i < n; ++i)
+		dst[i] = src[i];
+}
+template<class T>
+void Copy(T* dst, T* src, size_t n)
+{
+	_copy(dst, src, n, __type_traits<T>::is_POD_type()); //调构造，传对象
+}
+
+
+
+
+struct a
+{
+	a(){}
+};
+void fun(a)
+{
+	cout << "suhd" << endl;
+}
+
+int main()
+{
+	fun(a());
+	int a1[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
+	int a2[10];
+	Copy(a2, a1, 10);
+	string s1[] = { "1111", "2222", "3333", "4444" };
+	string s2[4];
+	Copy(s2, s1, 4);
+	return 0;
+}
+#endif
+
+
+#include "head.h"
+
+
+int main()
+{
+	Add(2, 4);
+	Add(3.0, 5.0);
+	return 0;
+}
