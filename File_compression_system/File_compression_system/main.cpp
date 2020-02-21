@@ -11,6 +11,11 @@
 4.如何进行压缩？
 */
 
+/*
+压缩文件包含两部分：压缩信息：源文件后缀，编码行数, 字符次数信息
+                    压缩数据：
+*/
+
 #include "FileCompressHuff.h"
 
 
@@ -18,6 +23,7 @@
 int main()
 {
 	FileCompressHuff fc;
-	fc.CompressFile("1.txt");
+	//fc.CompressFile("1.txt");
+	fc.UncompressFile("2.txt");
 	return 0;
 }
