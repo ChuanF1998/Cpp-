@@ -9,7 +9,7 @@ using namespace std;
 
 struct Charinfo
 {
-	char _ch;       //×Ö·ûascllÂë
+	unsigned char _ch;       //×Ö·ûascllÂë
 	size_t _count; //×Ö·ûÊıÁ¿
 	string _code;   //×Ö·û±àÂë
 	Charinfo(size_t count = 0)

@@ -16,13 +16,13 @@ FileCompressHuff::FileCompressHuff()
 void FileCompressHuff::CompressFile(const string& filepath)
 {
 	//1.统计字符
-	FILE* file = fopen(filepath.c_str(), "r");
+	FILE* file = fopen(filepath.c_str(), "rb");
 	if (file == nullptr) {
 		assert(false);
 		return;
 	}
 
-	char* readbuff = new char[1024];
+	unsigned char* readbuff = new unsigned char[1024];
 	int read_size = 0;
 	while (true) {
 		read_size = fread(readbuff, 1, 1024, file);
@@ -77,7 +77,7 @@ void FileCompressHuff::CompressFile(const string& filepath)
 	}
 	
 	//最后一次ch可能不够8个bit位
-	if (bitCount < 8) {
+	if (bitCount != 0 && bitCount < 8) {
 		ch <<= (8 - bitCount);
 		fputc(ch, fOut);
 	}
@@ -163,7 +163,7 @@ void FileCompressHuff::Huffman_code(Huffman_node<Charinfo>* root)
 //1.获取头部信息 2.还原huffman树  3.解压缩
 void FileCompressHuff::UncompressFile(const string& filepath)
 {
-	FILE* fIn = fopen(filepath.c_str(), "r");
+	FILE* fIn = fopen(filepath.c_str(), "rb");
 	if (fIn == nullptr) {
 		assert(false);
 		return;
@@ -182,8 +182,13 @@ void FileCompressHuff::UncompressFile(const string& filepath)
 	for (int i = 0; i < lineCount; ++i) {
 		string strchCount;
 		ReadLine(fIn, strchCount);
-
-		_char[strchCount[0]]._count = atoi(strchCount.c_str() + 2);
+		
+		//如果读到换行 \n 则多读一行
+		if (strchCount.empty()) {
+			strchCount += '\n';
+			ReadLine(fIn, strchCount);
+		}
+		_char[(unsigned char)strchCount[0]]._count = atoi(strchCount.c_str() + 2);
 	}
 
 	//还原huffman树
@@ -196,7 +201,7 @@ void FileCompressHuff::UncompressFile(const string& filepath)
 	Huffman_node<Charinfo>* pCur = t.get(); 
 	size_t unCount = 0;
 	size_t fileSize = pCur->_value._count;  //文件总大小
-	FILE* fOut = fopen("3.txt", "w");
+	FILE* fOut = fopen("3.txt", "wb");
 	while (true) {
 		size_t rdsize = fread(readBuff, 1, 1024, fIn);
 		if (0 == rdsize) {
@@ -217,10 +222,10 @@ void FileCompressHuff::UncompressFile(const string& filepath)
 				if (pCur->_Lchild == nullptr && pCur->_Rchild == nullptr) {
 					fputc(pCur->_value._ch, fOut);
 					unCount++;
+					pCur = t.get();
 					if (unCount == fileSize) {
 						break;
 					}
-					pCur = t.get();
 				}
 			}
 		}

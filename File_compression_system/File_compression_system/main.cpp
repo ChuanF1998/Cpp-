@@ -23,7 +23,13 @@
 int main()
 {
 	FileCompressHuff fc;
-	//fc.CompressFile("1.txt");
+	fc.CompressFile("1.txt");
 	fc.UncompressFile("2.txt");
 	return 0;
 }
+
+
+/*
+问题1：不能用char形，要用unsiged char
+问题2：多写入了一个空格到压缩文件
+*/
