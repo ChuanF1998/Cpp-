@@ -76,7 +76,7 @@ void FileCompressHuff::CompressFile(const string& filepath)
 		}
 	}
 	
-	//最后一次ch可能不够8个bit位
+	//最后一次ch可能不够8个bit位但不包括0个比特位
 	if (bitCount != 0 && bitCount < 8) {
 		ch <<= (8 - bitCount);
 		fputc(ch, fOut);
