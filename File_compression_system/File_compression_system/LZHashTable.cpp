@@ -41,3 +41,8 @@ void LZHashTable::Insert(USH& macthHead, UCH ch, USH pos, USH& hashAddr)
 	_prev[pos & HASH_MASK] = _head[hashAddr];
 	_head[hashAddr] = pos;
 }
+
+USH LZHashTable::GetNext(USH matchHead)
+{
+	return _prev[matchHead & HASH_MASK];
+}

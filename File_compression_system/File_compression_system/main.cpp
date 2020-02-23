@@ -16,6 +16,7 @@
                     压缩数据：
 */
 
+#if 0
 #include "FileCompressHuff.h"
 
 
@@ -28,6 +29,18 @@ int main()
 	return 0;
 }
 
+#endif
+
+
+#include "LZ77.h"
+
+int main()
+{
+	LZ77 lz;
+	//lz.CompressFile("1.txt");
+	lz.UncompressFile("2.txt");
+	return 0;
+}
 
 /*
 问题1：不能用char形，要用unsiged char
@@ -43,4 +56,9 @@ int main()
 6.是不是每次压缩之后都会变小？会变大吗
 7.文本文件，视频文件，音频，图片
 8.改进的方式
+*/
+
+/*
+LZ77:
+1.缓冲区的问题
 */
