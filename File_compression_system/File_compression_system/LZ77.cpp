@@ -68,6 +68,8 @@ void LZ77::CompressFile(const string& strFilePath)
 	FILE* fOut = fopen("2.txt", "wb");
 	assert(fOut);
 
+	ULL fileSize = 0; //文件大小
+
 	//lookAhead表示先行缓冲区中剩余字节的个数
 	while (lookAhead) {
 		//匹配之前，将长度和距离清零
@@ -93,6 +95,7 @@ void LZ77::CompressFile(const string& strFilePath)
 			WriteFlag(fOutFlag, chFlag, bitCount, false);
 			start++;
 			lookAhead--;
+			fileSize++;
 		}
 		else {
 			//找到匹配，将<长度， 距离> 对插入
@@ -108,6 +111,8 @@ void LZ77::CompressFile(const string& strFilePath)
 
 			//更新先行缓冲区中剩余的字节数
 			lookAhead -= curMatchLength;
+
+			fileSize += curMatchLength;
 
 			//将已经匹配的字符串按照三个一组插入到hash表中
 			curMatchLength -= 1;
@@ -126,13 +131,32 @@ void LZ77::CompressFile(const string& strFilePath)
 		chFlag <<= (8 - bitCount);
 		fputc(chFlag, fOutFlag);
 	}
-	//合并压缩文件
 
+	fclose(fIn);
+	fclose(fOutFlag);
+
+	//合并压缩文件
+	//1.读取标记信息文件中内容，然后将结果写入到压缩文件中
+	FILE* fInF = fopen("3.txt", "rb");
+
+	ULL flagSize = 0;
+	UCH* pReadBuff = new UCH[1024];
+	while (true) {
+		size_t rdSize = fread(pReadBuff, 1, 1024, fInF);
+		if (rdSize == 0) {
+			break;
+		}
+
+		fwrite(pReadBuff, 1, rdSize, fOut);
+		flagSize += rdSize;
+	}
+
+	fwrite(&flagSize, sizeof(flagSize), 1, fOut);
 
 	//关闭文件
-	fclose(fIn);
+	
 	fclose(fOut);
-	fclose(fOutFlag);
+	
 
 }
 
@@ -265,7 +289,6 @@ void LZ77::UncompressFile(const string& strFilePath)
 	fclose(fIn_Flag);
 	fclose(fOut);
 	fclose(fOut_r);
-
 
 }
 
