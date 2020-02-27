@@ -37,7 +37,7 @@ int main()
 int main()
 {
 	LZ77 lz;
-	//lz.CompressFile("1.txt");
+	lz.CompressFile("1.txt");
 	lz.UncompressFile("2.txt");
 	return 0;
 }

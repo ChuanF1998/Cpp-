@@ -51,7 +51,7 @@ void LZ77::CompressFile(const string& strFilePath)
 	UCH chFlag = 0;  
 	USH bitCount = 0;
 	bool isLen = false;
-	FILE* fOutFlag = fopen("3.txt", "wb");  //写标记的文件
+	
 
 	USH start = 0;
 	USH hashAddr = 0;
@@ -67,8 +67,8 @@ void LZ77::CompressFile(const string& strFilePath)
 	//打开输出文件
 	FILE* fOut = fopen("2.txt", "wb");
 	assert(fOut);
-
-	ULL fileSize = 0; //文件大小
+	//写标记的文件
+	FILE* fOutFlag = fopen("3.txt", "wb");  
 
 	//lookAhead表示先行缓冲区中剩余字节的个数
 	while (lookAhead) {
@@ -95,7 +95,6 @@ void LZ77::CompressFile(const string& strFilePath)
 			WriteFlag(fOutFlag, chFlag, bitCount, false);
 			start++;
 			lookAhead--;
-			fileSize++;
 		}
 		else {
 			//找到匹配，将<长度， 距离> 对插入
@@ -111,8 +110,6 @@ void LZ77::CompressFile(const string& strFilePath)
 
 			//更新先行缓冲区中剩余的字节数
 			lookAhead -= curMatchLength;
-
-			fileSize += curMatchLength;
 
 			//将已经匹配的字符串按照三个一组插入到hash表中
 			curMatchLength -= 1;
@@ -131,31 +128,15 @@ void LZ77::CompressFile(const string& strFilePath)
 		chFlag <<= (8 - bitCount);
 		fputc(chFlag, fOutFlag);
 	}
-
-	fclose(fIn);
 	fclose(fOutFlag);
 
 	//合并压缩文件
-	//1.读取标记信息文件中内容，然后将结果写入到压缩文件中
-	FILE* fInF = fopen("3.txt", "rb");
-
-	ULL flagSize = 0;
-	UCH* pReadBuff = new UCH[1024];
-	while (true) {
-		size_t rdSize = fread(pReadBuff, 1, 1024, fInF);
-		if (rdSize == 0) {
-			break;
-		}
-
-		fwrite(pReadBuff, 1, rdSize, fOut);
-		flagSize += rdSize;
-	}
-
-	fwrite(&flagSize, sizeof(flagSize), 1, fOut);
+	MergeFile(fOut, FileSize);
 
 	//关闭文件
-	
 	fclose(fOut);
+	fclose(fIn);
+	
 	
 
 }
@@ -227,17 +208,32 @@ USH LZ77::LongestMatch(USH matchHead, USH& curMatchDist, USH start)
 //解压缩
 void LZ77::UncompressFile(const string& strFilePath)
 {
-	//打开压缩文件和标记文件
-	FILE* fIn = fopen("2.txt", "rb");
+	//打开压缩文件
+	FILE* fIn = fopen(strFilePath.c_str(), "rb");
 	if (fIn == nullptr) {
 		cout << "打开文件失败" << endl;
 		return;
 	}
-	FILE* fIn_Flag = fopen("3.txt", "rb");
-	if (fIn_Flag == nullptr) {
+	//再次打开文件，为操作标记的指针
+	FILE* fInF = fopen(strFilePath.c_str(), "rb");
+	if (fInF == nullptr) {
 		cout << "打开文件失败" << endl;
 		return;
 	}
+
+	//获取源文件的大小
+	ULL FileSize = 0;
+	fseek(fInF, 0 - sizeof(FileSize), SEEK_END);
+	fread(&FileSize, sizeof(FileSize), 1, fInF);
+
+	//获取标记信息的大小
+	size_t FlagSize = 0;
+	fseek(fInF, 0 - sizeof(ULL) - sizeof(FlagSize), SEEK_END);
+	fread(&FlagSize, sizeof(FlagSize), 1, fInF);
+
+	//将读取标记信息的文件指针移动到保存标记数据的起始位置
+	fseek(fInF, 0 - sizeof(FlagSize)- FlagSize - sizeof(FileSize), SEEK_END);
+	
 
 	FILE* fOut = fopen("4.txt", "wb");
 	if (fOut == nullptr) {
@@ -249,9 +245,10 @@ void LZ77::UncompressFile(const string& strFilePath)
 
 	UCH bitCount = 0;
 	UCH chFlag = 0;
-	while (!feof(fIn)) {
+	ULL EncodeCount = 0;
+	while (EncodeCount < FileSize) {
 		if (bitCount == 0) {
-			chFlag = fgetc(fIn_Flag);
+			chFlag = fgetc(fInF);
 			bitCount = 8;
 		}
 
@@ -266,6 +263,8 @@ void LZ77::UncompressFile(const string& strFilePath)
 			UCH ch;
 			//清空缓冲区
 			fflush(fOut);
+
+			EncodeCount += matchLen;
 			//fOut_r:读取前文匹配的内容
 			fseek(fOut_r, 0 - matchDist, SEEK_END);
 			while (matchLen != 0) {
@@ -279,6 +278,7 @@ void LZ77::UncompressFile(const string& strFilePath)
 			//原字符
 			UCH ch = fgetc(fIn);
 			fputc(ch, fOut);
+			EncodeCount += 1;
 		}
 
 		chFlag <<= 1;
@@ -286,10 +286,33 @@ void LZ77::UncompressFile(const string& strFilePath)
 	}
 
 	fclose(fIn);
-	fclose(fIn_Flag);
+	fclose(fInF);
 	fclose(fOut);
 	fclose(fOut_r);
 
+}
+
+//合并压缩文件
+void LZ77::MergeFile(FILE* fOut, ULL FileSize)
+{
+	//1.读取标记信息文件中内容，然后将结果写入到压缩文件中
+	FILE* fInF = fopen("3.txt", "rb");
+
+    size_t flagSize = 0;
+	UCH* pReadBuff = new UCH[1024];
+	while (true) {
+		size_t rdSize = fread(pReadBuff, 1, 1024, fInF);
+		if (rdSize == 0) {
+			break;
+		}
+
+		fwrite(pReadBuff, 1, rdSize, fOut);
+		flagSize += rdSize;
+	}
+
+	fwrite(&flagSize, sizeof(flagSize), 1, fOut);
+	fwrite(&FileSize, sizeof(FileSize), 1, fOut);
+	fclose(fInF);
 }
 
 

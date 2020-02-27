@@ -17,6 +17,7 @@ public:
 private:
 	USH LongestMatch(USH matchHead, USH& curMatchDist, USH start); //获取最长匹配
 	void WriteFlag(FILE* fOut, UCH& chFlag, USH& bitCount, bool isLen);
+	void MergeFile(FILE* fOut, ULL fileSize);
 private:
 	UCH* _pWin; //用来保存待压缩数据的缓冲区
 	LZHashTable _pH;
