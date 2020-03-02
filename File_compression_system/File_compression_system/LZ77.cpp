@@ -45,7 +45,7 @@ void LZ77::CompressFile(const string& strFilePath)
 
 	//从压缩文件中读取一个缓冲区的数据到窗口中
 	fseek(fIn, 0, SEEK_SET);
-	USH lookAhead = fread(_pWin, 1, 2 * WSIZE, fIn);
+	size_t lookAhead = fread(_pWin, 1, 2 * WSIZE, fIn);
 
 	//与写标记相关的变量
 	UCH chFlag = 0;  
@@ -119,6 +119,11 @@ void LZ77::CompressFile(const string& strFilePath)
 				curMatchLength--;				
 			}
 			start++;
+		}
+
+		//检测先行缓冲区中剩余字符个数
+		if (lookAhead <= MIN_LOOKAHEAD) {
+			FillWindow(fIn, lookAhead, start);
 		}
 
 	}
@@ -271,6 +276,7 @@ void LZ77::UncompressFile(const string& strFilePath)
 				 ch = fgetc(fOut_r);
 				 fputc(ch, fOut);
 				 matchLen--;
+				 fflush(fOut);
 			}
 
 		}
@@ -279,6 +285,7 @@ void LZ77::UncompressFile(const string& strFilePath)
 			UCH ch = fgetc(fIn);
 			fputc(ch, fOut);
 			EncodeCount += 1;
+			
 		}
 
 		chFlag <<= 1;
@@ -313,6 +320,25 @@ void LZ77::MergeFile(FILE* fOut, ULL FileSize)
 	fwrite(&flagSize, sizeof(flagSize), 1, fOut);
 	fwrite(&FileSize, sizeof(FileSize), 1, fOut);
 	fclose(fInF);
+}
+
+//滑动窗口
+void LZ77::FillWindow(FILE* fIn, size_t& lookAhead, USH& start)
+{
+	if (start >= WSIZE) {
+		//将右窗中的数据搬移到左窗
+		memcpy(_pWin, _pWin + WSIZE, WSIZE);
+		memset(_pWin + WSIZE, 0, WSIZE);
+		start -= WSIZE;
+
+		//更新hash表
+		_pH.Update();
+
+		//像右窗中补充一个窗口
+		if (!feof(fIn)) {
+			lookAhead += fread(_pWin + WSIZE, 1, WSIZE, fIn);
+		}
+	}
 }
 
 

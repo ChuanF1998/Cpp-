@@ -10,6 +10,7 @@ public:
 	void Insert(USH& matchHead, UCH ch, USH pos, USH& hashAddr);
 	void HashFunc(USH& hashAddr, UCH ch); //计算三个字符的hash值
 	USH GetNext(USH matchHead); //获取前一个hash地址
+	void Update();
 private:
 	
 	USH H_SHIFT();
