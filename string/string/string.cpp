@@ -265,3 +265,12 @@ std::istream& My_string::operator>> (std::istream& in, string& str)
 	str._capacity = str._size;
 	return in;
 }
+
+My_string::iterator My_string::string::begin()
+{
+	return _str;
+}
+My_string::iterator My_string::string::end()
+{
+	return _str + _size;
+}

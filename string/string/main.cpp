@@ -1,13 +1,17 @@
 #include "string.h"
-//#include <string>
+#include <string>
 
 
 
 int main()
 {
-	//test();
 	My_string::string str1("qwer");
-	My_string::string str2;
+	My_string::string str2("qwer");
+	std::cout << (str1 == str2) << std::endl;
+	std::cout << (str1 != str2) << std::endl;
+	auto it = str1.begin();
+	auto k = it + 3;
+	My_string::string str8;
 	std::cin >> str2;
 	My_string::string str3 = "32434";
 	My_string::string str4 = str1 + str3;

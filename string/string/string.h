@@ -41,6 +41,8 @@ namespace My_string
 		size_t find(char c, size_t pos = 0)const; //从pos位置向后查找，返回找到的第一个相同字符的下标
 		string substr(size_t pos = 0, size_t n = npos)const;
 		const char* c_str()const; //返回char型字符串
+		iterator begin();
+		iterator end();
 		~string();
 	private:
 		friend std::ostream& operator<< (std::ostream& out, const string& str);
