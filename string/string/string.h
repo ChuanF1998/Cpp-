@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string.h>
+#include <iostream>
+//#include <ostream>
 
 const size_t npos = 0;
 namespace My_string
@@ -24,14 +26,25 @@ namespace My_string
 		void reserve(size_t res_arg = 0); //为字符串预留空间
 		char& operator[] (size_t pos);
 		const char& operator[] (size_t pos)const;
+		bool operator== (const string& str);
+		bool operator!= (const string& str);
+		string& operator= (const char* str);
+		string& operator= (const string& str);
+		string& operator+= (const string& str);
 		string& operator+= (const char* str);
 		string& operator+= (const char c);
+		string operator+ (const string& str);
+		string operator+ (const char* str);
+		string operator+ (const char c);
 		void push_back(char c); //插入
 		void pop_back();  //删除
 		size_t find(char c, size_t pos = 0)const; //从pos位置向后查找，返回找到的第一个相同字符的下标
 		string substr(size_t pos = 0, size_t n = npos)const;
 		const char* c_str()const; //返回char型字符串
 		~string();
+	private:
+		friend std::ostream& operator<< (std::ostream& out, const string& str);
+		friend std::istream& operator>> (std::istream& in, string& str);
 	private:
 		char* _str;
 		size_t _size;
