@@ -33,12 +33,15 @@ int main()
 
 
 #include "LZ77.h"
+#include <string>
 
 int main()
 {
 	LZ77 lz;
-	lz.CompressFile("1.txt");
-	lz.UncompressFile("2.txt");
+
+	std::string postFix;
+	lz.CompressFile("1.txt", postFix);
+	lz.UncompressFile("1.lzp", postFix);
 	return 0;
 }
 

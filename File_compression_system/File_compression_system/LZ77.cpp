@@ -22,7 +22,7 @@ LZ77::~LZ77()
 }
 
 //压缩算法
-void LZ77::CompressFile(const string& strFilePath)
+void LZ77::CompressFile(const string& strFilePath, string& postFix)
 {
     //1.如果源文件的大小小于 MIN_MATCH，则不进行处理
 	//
@@ -64,11 +64,20 @@ void LZ77::CompressFile(const string& strFilePath)
 		_pH.HashFunc(hashAddr, _pWin[i]);
 	}
 
+	//找出文件后缀
+	size_t pos = strFilePath.find('.');
+	postFix = strFilePath.substr(pos + 1);
+
+	string compression = strFilePath.substr(0, pos);
+	//压缩文件和标记文件
+	string comFile = compression + ".lzp"; 
+	string comFileFlag = compression + "_F.lzp";
+
 	//打开输出文件
-	FILE* fOut = fopen("2.txt", "wb");
+	FILE* fOut = fopen(comFile.c_str(), "wb");
 	assert(fOut);
 	//写标记的文件
-	FILE* fOutFlag = fopen("3.txt", "wb");  
+	FILE* fOutFlag = fopen(comFileFlag.c_str(), "wb");
 
 	//lookAhead表示先行缓冲区中剩余字节的个数
 	while (lookAhead) {
@@ -136,7 +145,7 @@ void LZ77::CompressFile(const string& strFilePath)
 	fclose(fOutFlag);
 
 	//合并压缩文件
-	MergeFile(fOut, FileSize);
+	MergeFile(fOut, FileSize, comFileFlag);
 
 	//关闭文件
 	fclose(fOut);
@@ -211,7 +220,7 @@ USH LZ77::LongestMatch(USH matchHead, USH& curMatchDist, USH start)
 
 
 //解压缩
-void LZ77::UncompressFile(const string& strFilePath)
+void LZ77::UncompressFile(const string& strFilePath, string postFix)
 {
 	//打开压缩文件
 	FILE* fIn = fopen(strFilePath.c_str(), "rb");
@@ -239,14 +248,19 @@ void LZ77::UncompressFile(const string& strFilePath)
 	//将读取标记信息的文件指针移动到保存标记数据的起始位置
 	fseek(fInF, 0 - sizeof(FlagSize)- FlagSize - sizeof(FileSize), SEEK_END);
 	
+	size_t pos = strFilePath.find('.');
+	string uncompression = strFilePath.substr(0, pos);
+	//压缩文件和标记文件
+	string uncomFile = uncompression + " _u." + postFix;
+	//string comFileFlag = compression + "_F.lzp";
 
-	FILE* fOut = fopen("4.txt", "wb");
+	FILE* fOut = fopen(uncomFile.c_str(), "wb");
 	if (fOut == nullptr) {
 		cout << "打开文件失败" << endl;
 		return;
 	}
 
-	FILE* fOut_r = fopen("4.txt", "rb");
+	FILE* fOut_r = fopen(uncomFile.c_str(), "rb");
 
 	UCH bitCount = 0;
 	UCH chFlag = 0;
@@ -300,10 +314,10 @@ void LZ77::UncompressFile(const string& strFilePath)
 }
 
 //合并压缩文件
-void LZ77::MergeFile(FILE* fOut, ULL FileSize)
+void LZ77::MergeFile(FILE* fOut, ULL FileSize, string comFileFlag)
 {
 	//1.读取标记信息文件中内容，然后将结果写入到压缩文件中
-	FILE* fInF = fopen("3.txt", "rb");
+	FILE* fInF = fopen(comFileFlag.c_str(), "rb");
 
     size_t flagSize = 0;
 	UCH* pReadBuff = new UCH[1024];
