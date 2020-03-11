@@ -41,9 +41,12 @@ void FileCompressHuff::CompressFile(const string& filepath)
 	//3.获取编码
 	Huffman_code(tree.get());
 
+	size_t pos = filepath.find('.');
+	string fileN = filepath.substr(0, pos) + "_hf.lzp";
+
 	//4.用获取到的字符编码重新改写文件
 	fseek(file, 0, SEEK_SET);      //重新定位文件指针
-	FILE* fOut = fopen("2.txt", "w");
+	FILE* fOut = fopen(fileN.c_str(), "wb");
 	if (fOut == nullptr) {
 		assert(false);
 		return;
@@ -201,7 +204,10 @@ void FileCompressHuff::UncompressFile(const string& filepath)
 	Huffman_node<Charinfo>* pCur = t.get(); 
 	size_t unCount = 0;
 	size_t fileSize = pCur->_value._count;  //文件总大小
-	FILE* fOut = fopen("3.txt", "wb");
+
+	size_t pos = filepath.find('.');
+	string fileO = filepath.substr(0, pos) + "_u" + filepath.substr(pos);
+	FILE* fOut = fopen(fileO.c_str(), "wb");
 	while (true) {
 		size_t rdsize = fread(readBuff, 1, 1024, fIn);
 		if (0 == rdsize) {

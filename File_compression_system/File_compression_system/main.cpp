@@ -31,17 +31,42 @@ int main()
 
 #endif
 
-
+#include "FileCompressHuff.h"
 #include "LZ77.h"
+#include <time.h>
 #include <string>
+#include <iostream>
 
 int main()
 {
 	LZ77 lz;
-
+	FileCompressHuff hu;
+	//clock_t start_time, finish_time;
+	//clock_t time;
+	//double cord_time = 0.0;
 	std::string postFix;
-	lz.CompressFile("1.txt", postFix);
-	lz.UncompressFile("1.lzp", postFix);
+	
+	std::string fileName;
+	while (std::cin >> fileName) {
+		size_t pos = fileName.find('.');
+		string comFile = fileName.substr(0, pos) + ".lzp";
+		string hf_comFile = fileName.substr(0, pos) + "_hf.lzp";
+		string uhf_comFile = fileName.substr(0, pos) + "_hf_u.lzp";
+		//hu.CompressFile(fileName);
+		//hu.UncompressFile(hf_comFile);
+		//for (int i = 0; i < 10; ++i) {
+			//start_time = clock();
+			lz.CompressFile(fileName, postFix);	
+			hu.CompressFile(comFile);
+			hu.UncompressFile(hf_comFile);
+			lz.UncompressFile(uhf_comFile, postFix);
+			//finish_time = clock();
+			//time = (double)(finish_time - start_time);
+			//cord_time += time;
+			//std::cout << time << std::endl;
+		//}
+		//std::cout << cord_time / 10 << std::endl;
+	}
 	return 0;
 }
 
