@@ -14,7 +14,6 @@ My_string::string::string(const char* str)
     , _capacity(_size)
 {
 	strcpy(_str, str);
-	//_str[_size] = '\0';
 }
 
 My_string::string::string(size_t n, char c)
